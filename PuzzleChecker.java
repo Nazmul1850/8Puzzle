@@ -47,7 +47,7 @@ public class PuzzleChecker {
                     int number = tiles[row][col];
                     String tile = Integer.toString(number);
                     tile += ".png";
-                    StdDraw.picture(col + 0.5, n - row - 0.5, tile, 1 - .1, 1 - .1);
+                    StdDraw.picture(col + 0.5, n - row - 0.5, tile, 1 - 0.1, 1 - 0.1);
                     StdDraw.setFont(new Font("SansSerif", Font.PLAIN, 12));
                     StdDraw.text((n / 2.0), -0.1, "Number of Moves" + move);
                 }
@@ -56,7 +56,7 @@ public class PuzzleChecker {
         else {
             StdDraw.setFont(new Font("SansSerif", Font.PLAIN, 24));
             StdDraw.setPenColor(StdDraw.WHITE);
-            StdDraw.text(n / 2, n / 2, "Unsolvable");
+            StdDraw.text(n / 2.0, n / 2.0, "Unsolvable");
         }
     }
 
@@ -79,6 +79,7 @@ public class PuzzleChecker {
             draw(initial, n, true, move);
             StdDraw.show();
             StdDraw.pause(2 * DELAY);
+            assert solver.solution() != null;
             for (Board x : solver.solution()) {
                 draw(x, n, true, move++);
                 StdDraw.show();

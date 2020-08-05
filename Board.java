@@ -4,30 +4,25 @@
  *  Description:
  **************************************************************************** */
 
-import edu.princeton.cs.algs4.In;
-import edu.princeton.cs.algs4.StdOut;
-import edu.princeton.cs.algs4.StdRandom;
-
 import java.util.ArrayList;
 
 public class Board {
     // create a board from an n-by-n array of tiles,
     // where tiles[row][col] = tile at (row, col)
     private int[][] tiles;
-    private int[][] goaltile;
-    private int N;
+    private int n;
 
     public Board(int[][] tiles) {
-        this.tiles = tiles.clone();
-        this.N = tiles[0].length;
-        int count = 1;
-        goaltile = new int[N][N];
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                goaltile[i][j] = count++;
+        if (tiles == null) throw new IllegalArgumentException();
+        else {
+            this.n = tiles[0].length;
+            this.tiles = new int[n][n];
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    this.tiles[i][j] = tiles[i][j];
+                }
             }
         }
-        goaltile[N - 1][N - 1] = 0;
 
     }
 
@@ -37,31 +32,31 @@ public class Board {
 
     // string representation of this board
     public String toString() {
-        String board = "";
-        board += Integer.toString(this.N);
-        board += '\n';
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
+        StringBuilder board = new StringBuilder();
+        board.append(Integer.toString(this.n));
+        board.append('\n');
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
                 int temp = tiles[i][j];
-                board += Integer.toString(temp);
-                board += " ";
+                board.append(Integer.toString(temp));
+                board.append(" ");
             }
-            board += '\n';
+            board.append('\n');
         }
-        return board;
+        return board.toString();
     }
 
     // board dimension n
     public int dimension() {
-        return N;
+        return n;
     }
 
     // number of tiles out of place
     public int hamming() {
         int hamdist = 0;
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                if (tiles[i][j] != goaltile[i][j] && tiles[i][j] != 0) hamdist++;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (tiles[i][j] != getGoaltile()[i][j] && tiles[i][j] != 0) hamdist++;
             }
         }
         return hamdist;
@@ -69,8 +64,8 @@ public class Board {
 
     private int[] getindex(int x, int[][] tile) {
         int[] point = new int[2];
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
                 if (tile[i][j] == x) {
                     point[0] = i;
                     point[1] = j;
@@ -81,13 +76,25 @@ public class Board {
         return point;
     }
 
+    private int[][] getGoaltile() {
+        int count = 1;
+        int[][] goaltile = new int[n][n];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                goaltile[i][j] = count++;
+            }
+        }
+        goaltile[n - 1][n - 1] = 0;
+        return goaltile;
+    }
+
     // sum of Manhattan distances between tiles and goal
     public int manhattan() {
         int sum = 0;
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                if (tiles[i][j] != goaltile[i][j] && tiles[i][j] != 0) {
-                    int[] point = getindex(tiles[i][j], goaltile);
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (tiles[i][j] != getGoaltile()[i][j] && tiles[i][j] != 0) {
+                    int[] point = getindex(tiles[i][j], getGoaltile());
                     sum += Math.abs(i - point[0]) + Math.abs(j - point[1]);
                 }
             }
@@ -96,30 +103,31 @@ public class Board {
 
     }
 
-    public void show() {
-        StdOut.println(hamming());
-        StdOut.println(manhattan());
-        StdOut.println(isGoal());
-        StdOut.println(this);
-    }
-
     // is this board the goal board?
     public boolean isGoal() {
-        if (hamming() == 0) return true;
-        else return false;
+        return hamming() == 0;
     }
 
     // does this board equal y?
     public boolean equals(Object y) {
-        Board that = (Board) y;
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                if (this.tiles[i][j] != that.tiles[i][j]) {
-                    return false;
+        if (y == null) return false;
+        else if (getClass() != y.getClass()) return false;
+        else {
+            Board that = (Board) y;
+            if (n != that.n) {
+                return false;
+            }
+            else {
+                for (int i = 0; i < n; i++) {
+                    for (int j = 0; j < n; j++) {
+                        if (this.tiles[i][j] != that.tiles[i][j]) {
+                            return false;
+                        }
+                    }
                 }
             }
+            return true;
         }
-        return true;
     }
 
     // all neighboring boards
@@ -128,17 +136,18 @@ public class Board {
         return getNeighbours();
     }
 
-    private void swap(int x1, int y1, int x2, int y2) {
-        int temp = tiles[x2][y2];
-        tiles[x2][y2] = tiles[x1][y1];
-        tiles[x1][y1] = temp;
+    private int[][] swap(int x1, int y1, int x2, int y2, int[][] nTiles) {
+        int temp = nTiles[x2][y2];
+        nTiles[x2][y2] = nTiles[x1][y1];
+        nTiles[x1][y1] = temp;
+        return nTiles;
     }
 
     private int[][] copytile(int[][] copyfrom) {
-        int n = copyfrom[0].length;
-        int[][] copyto = new int[n][n];
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
+        int newN = copyfrom[0].length;
+        int[][] copyto = new int[newN][newN];
+        for (int i = 0; i < newN; i++) {
+            for (int j = 0; j < newN; j++) {
                 copyto[i][j] = copyfrom[i][j];
             }
         }
@@ -151,30 +160,22 @@ public class Board {
         int[] index = getindex(0, tiles);
         int x = index[0];
         int y = index[1];
-        if (x + 1 < N) {
-            swap(x, y, x + 1, y);
-            int[][] newtiles = copytile(tiles);
+        if (x + 1 < n) {
+            int[][] newtiles = swap(x, y, x + 1, y, copytile(tiles));
             itr.add(new Board(newtiles));
-            swap(x + 1, y, x, y);
         }
         if (x - 1 >= 0) {
-            swap(x, y, x - 1, y);
-            int[][] newtiles = copytile(tiles);
+            int[][] newtiles = swap(x, y, x - 1, y, copytile(tiles));
             itr.add(new Board(newtiles));
-            swap(x - 1, y, x, y);
         }
 
         if (y - 1 >= 0) {
-            swap(x, y, x, y - 1);
-            int[][] newtiles = copytile(tiles);
+            int[][] newtiles = swap(x, y, x, y - 1, copytile(tiles));
             itr.add(new Board(newtiles));
-            swap(x, y - 1, x, y);
         }
-        if (y + 1 < N) {
-            swap(x, y, x, y + 1);
-            int[][] newtiles = copytile(tiles);
+        if (y + 1 < n) {
+            int[][] newtiles = swap(x, y, x, y + 1, copytile(tiles));
             itr.add(new Board(newtiles));
-            swap(x, y + 1, x, y);
         }
         return itr;
     }
@@ -183,32 +184,30 @@ public class Board {
     // a board that is obtained by exchanging any pair of tiles
     public Board twin() {
         int[][] twintiles;
-        int x1, x2, y1, y2;
+        int x = n / 2;
+        int y1 = 0;
+        int y2 = 1;
         int[] point = getindex(0, tiles);
-        do {
-            x1 = StdRandom.uniform(N);
-            y1 = StdRandom.uniform(N);
-            x2 = StdRandom.uniform(N);
-            y2 = StdRandom.uniform(N);
-        } while ((x1 == x2 && y1 == y2) || ((x1 == point[0] && y1 == point[1]) || (x2 == point[0]
-                && y2 == point[1])));
-        swap(x1, y1, x2, y2);
-        twintiles = copytile(tiles);
-        swap(x2, y2, x1, y1);
+        if (n == 2) {
+            if (point[0] == 0) x = 1;
+            else x = 0;
+        }
+        else {
+            if (x == point[0] && y1 == point[1]) {
+                y1++;
+                y2++;
+            }
+            if (x == point[0] && y2 == point[1]) {
+                y2++;
+            }
+
+        }
+        twintiles = swap(x, y1, x, y2, copytile(tiles));
         Board board = new Board(twintiles);
         return board;
     }
 
     public static void main(String[] args) {
-        In in = new In(args[0]);
-        int n = in.readInt();
-        int[][] tiles = new int[n][n];
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                tiles[i][j] = in.readInt();
-            }
-        }
-        Board initial = new Board(tiles);
-        StdOut.print(initial.twin());
+
     }
 }
